@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScreenPair</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--panel2:#0f141b;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#2f81f7;--danger:#da3633}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}header h1{font-size:18px;margin:0}.actions,.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}button{border:1px solid transparent;border-radius:8px;padding:9px 13px;background:var(--accent);color:white;cursor:pointer;font-weight:600}button.secondary{background:var(--panel);border-color:var(--line)}button.danger{background:transparent;border-color:var(--danger);color:#ff7b72}button:disabled{opacity:.55;cursor:not-allowed}main{display:grid;grid-template-columns:370px minmax(0,1fr);gap:14px;padding:14px;min-height:calc(100vh - 64px)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}h2{font-size:15px;margin:0 0 10px}textarea,input,select{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--text);padding:10px;font:inherit}textarea{min-height:130px;resize:vertical}label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}.small{font-size:12px;color:var(--muted)}.status{border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}.viewer{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:14px}.viewer img{width:100%;max-height:63vh;object-fit:contain;background:#05070a;border:1px solid var(--line);border-radius:8px}.output{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:280px;overflow:auto}.list{margin-top:10px;max-height:220px;overflow:auto;border-top:1px solid var(--line)}.item{padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10}.modal{display:none;position:fixed;z-index:11;width:min(680px,92vw);max-height:90vh;overflow:auto;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}.open{display:block}.checkline{display:flex;gap:8px;align-items:center;margin-top:12px}.checkline input{width:auto}@media(max-width:1000px){main,.viewer{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header><h1>ScreenPair — software-engineering assistant</h1><div class="actions"><span id="status" class="status">Idle</span><button id="export">Export Word</button><button id="settingsBtn" class="secondary">Settings</button></div></header>
+<main>
+  <section class="panel">
+    <h2>Objective</h2><textarea id="objective" placeholder="Describe the task, expected result, project constraints, and current state."></textarea>
+    <div class="row" style="margin-top:10px"><button id="captureOnce">Capture and analyse</button><button id="toggleAuto" class="secondary">Start automatic capture</button></div>
+    <label>Background context</label><div class="row"><button id="addFiles" class="secondary">Add files</button><button id="clearFiles" class="secondary">Clear files</button></div><div id="fileList" class="list"><div class="item small">No files attached.</div></div>
+    <label>Session steps</label><div class="row"><button id="clearSession" class="danger">Clear session</button></div><div id="stepList" class="list"><div class="item small">No completed steps.</div></div>
+    <p class="small">Automatic capture sends the visible screen to the configured API. Pause it before opening sensitive information.</p>
+  </section>
+  <section class="panel viewer"><div><h2>Latest screenshot</h2><img id="screenshot" alt="Latest captured screen"></div><div><h2>Next action</h2><div id="output" class="output">No analysis yet.</div></div></section>
+</main>
+<div id="modalBg" class="modal-bg"></div>
+<div id="settingsModal" class="modal">
+  <h2>Settings</h2>
+  <label>API key</label><input id="apiKey" type="password" placeholder="sk-...">
+  <label>Chat Completions endpoint</label><input id="endpoint" type="text" value="https://api.openai.com/v1/chat/completions">
+  <label>Model</label><select id="model"><option value="gpt-5">gpt-5</option><option value="gpt-5-mini">gpt-5-mini</option><option value="gpt-5-nano">gpt-5-nano</option><option value="gpt-4.1-mini">gpt-4.1-mini</option><option value="gpt-4o-mini">gpt-4o-mini</option><option value="__custom__">Custom model ID</option></select>
+  <label>Custom model ID</label><input id="customModel" type="text" placeholder="Enter an exact model ID"><div class="row" style="margin-top:8px"><button id="loadModels" class="secondary">Load available models</button></div><div id="availableModels" class="small" style="margin-top:8px"></div>
+  <div class="checkline"><input id="autoCapture" type="checkbox"><span>Enable automatic capture after saving</span></div>
+  <label>Capture interval in seconds (minimum 15)</label><input id="intervalSec" type="number" min="15" step="5" value="60">
+  <label>Word template</label><div class="row"><button id="chooseTemplate" class="secondary">Choose .docx template</button></div><div id="templatePath" class="small" style="margin-top:7px">(No template selected)</div>
+  <label>System prompt</label><textarea id="systemPrompt"></textarea>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button id="saveSettings">Save</button><button id="closeSettings" class="secondary">Close</button></div>
+</div>
+<script type="module" src="./renderer.js"></script>
+</body>
+</html>
